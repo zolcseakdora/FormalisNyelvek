@@ -2,7 +2,7 @@
 #define PROBLEMS_DFA_H
 
 #include "../problem.hpp"
-#include "cxxopts.hpp"
+#include "../cxxopts.hpp"
 #include <string>
 
 class DfaProblem : public Problem {
