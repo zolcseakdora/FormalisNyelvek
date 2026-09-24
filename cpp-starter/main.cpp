@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "cxxopts.hpp"
-#include "problems/dfa.hpp
+#include "problems/dfa.hpp"
 
 // Add your own problems here
 #include "problems/sum.hpp"
