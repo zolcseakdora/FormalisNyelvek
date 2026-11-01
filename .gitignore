@@ -6,3 +6,14 @@ CMakeFiles
 *.cmake
 Makefile
 *.exe
+# Fejlesztokornyezet beallitasai
+.idea/
+.vscode/
+
+# Forditasi fajlok
+build/
+
+# A 3. hazi ideiglenes tesztfajljai
+mini_test*.txt
+mini_output*.txt
+mini_hibas*.txt

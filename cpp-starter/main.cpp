@@ -7,6 +7,7 @@
 // A megvalósított feladatok (osztályok) fejlécfájljainak beillesztése
 #include "problems/dfa.hpp"
 #include "problems/det.hpp"
+#include "problems/mini.hpp"
 
 // Ide kerülnek az újonnan létrehozott feladatok fejlécei
 #include "problems/sum.hpp"
@@ -23,6 +24,7 @@ int runProblem(int argc, char* argv[]) {
     problems.push_back(new SumProblem());
     problems.push_back(new DfaProblem());
     problems.push_back(new DetProblem());
+    problems.push_back(new MiniProblem());
 
     // 2. PARANCSSORI OPCIÓK BEÁLLÍTÁSA
     // Létrehozzuk a parser (elemző) objektumot a projekt nevével és rövid leírásával.
