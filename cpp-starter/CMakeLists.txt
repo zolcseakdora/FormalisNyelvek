@@ -13,4 +13,5 @@ add_executable(project
     problems/dfa.cpp
     problems/det.cpp
     problems/mini.cpp
+        problems/rgx.cpp
 )

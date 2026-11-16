@@ -1,80 +1,184 @@
-#include <iostream>
-#include <string>
-#include <vector>
 
-// Külső könyvtár a parancssori argumentumok (pl. -i, -o) kényelmes feldolgozásához
+#include <iostream>  // Konzolra torteno kiiras
+#include <string>    // Szoveges valtozok kezelese
+#include <vector>    // Dinamikusan bovitheto tomb
+
+// Kulso konyvtar a parancssori argumentumok feldolgozasahoz
 #include "cxxopts.hpp"
-// A megvalósított feladatok (osztályok) fejlécfájljainak beillesztése
+
+// Az elso hazi feladat fejlecfile-ja
 #include "problems/dfa.hpp"
+
+// A masodik hazi feladat fejlecfile-ja
 #include "problems/det.hpp"
+
+// A harmadik hazi feladat fejlecfile-ja
 #include "problems/mini.hpp"
 
-// Ide kerülnek az újonnan létrehozott feladatok fejlécei
+// A projektben eredetileg is szereplo osszeadasi feladat
 #include "problems/sum.hpp"
+#include "problems/rgx.hpp"
 
-// Ez a függvény fogja össze a program logikáját
+
+// Ez a fuggveny iranyitja az egesz program mukodeset.
+//
+// argc: a parancssorban megadott argumentumok szama
+// argv: a parancssorban megadott argumentumok tombje
+//
+// Pelda:
+// project --input input1.txt --output output1.txt --det
+//
+// A fuggveny visszateresi erteke:
+// 0 = sikeres futas
+// 1 = hiba
+
 int runProblem(int argc, char* argv[]) {
 
-    // 1. FELADATOK REGISZTRÁLÁSA
-    // Létrehozunk egy dinamikus tömböt (vektort), amely a Problem ősosztályból származó objektumokat tárolja.
+    // Letrehozunk egy vektort, amely a feladatok
+    // objektumaira mutato pointereket tarolja.
+    //
+    // A Problem egy kozos ososztaly.
+    // Ennek segitsegevel az egyes feladatokat
+    // egyseges modon tudjuk kezelni.
+
     std::vector<Problem *> problems;
 
-    // Példányosítjuk és listához adjuk a konkrét feladatokat.
-    // Ha új feladatot készítesz, azt itt kell beregisztrálni (pl. new SajatFeladat()).
+    // Letrehozzuk es regisztraljuk a feladatokat.
+
+    // Eredeti osszeadasi pelda
     problems.push_back(new SumProblem());
+
+    // 1. hazi: szavak ellenorzese DFA-val
     problems.push_back(new DfaProblem());
+
+    // 2. hazi: NFA determinizalasa
     problems.push_back(new DetProblem());
-    problems.push_back(new MiniProblem());
 
-    // 2. PARANCSSORI OPCIÓK BEÁLLÍTÁSA
-    // Létrehozzuk a parser (elemző) objektumot a projekt nevével és rövid leírásával.
-    cxxopts::Options options("project", "Run the specific problem");
+    // 3. hazi: DFA minimalizalasa
+// Az oran tanult haromszogmatrixos algoritmussal
+problems.push_back(new MiniProblem());
+    problems.push_back(new RegexProblem());
 
-    // Definiáljuk az alapvető, globális kapcsolókat, amiket minden feladat használhat:
-    // -i vagy --input: bemeneti fájl
-    // -o vagy --output: kimeneti fájl
-    // -h vagy --help: súgó megjelenítése
+    // Letrehozzuk a parancssori argumentumokat
+    // feldolgozo objektumot.
+    //
+    // A "project" a program neve.
+    // A masodik parameter a program leirasa.
+
+    cxxopts::Options options(
+        "project",
+        "Run the specific problem"
+    );
+
+
+    // Definialjuk a minden feladathoz hasznalhato
+    // parancssori kapcsolokat.
+
     options.add_options()
-        ("i,input", "Input file name", cxxopts::value<std::string>())
-        ("o,output", "Output file name", cxxopts::value<std::string>())
+
+        // -i vagy --input:
+        // a bemeneti fajl neve
+        ("i,input", "Input file name",
+         cxxopts::value<std::string>())
+
+        // -o vagy --output:
+        // a kimeneti fajl neve
+        ("o,output", "Output file name",
+         cxxopts::value<std::string>())
+
+        // -h vagy --help:
+        // segitseg megjelenitese
         ("h,help", "Print usage");
 
-    // 3. FELADATSPECIFIKUS OPCIÓK INICIALIZÁLÁSA
-    // Végigmegyünk a beregisztrált problémákon, így mindegyik hozzáadhatja a saját speciális parancssori kapcsolóit az 'options' objektumhoz.
+
+    // Minden feladat sajat kapcsoloit regisztraljuk.
+    //
+    // Pelda:
+    // DfaProblem -> --check
+    // DetProblem -> --det
+    //
+    // A for ciklus vegigmegy az osszes feladaton.
+
     for (Problem *p : problems) {
+
+        // Meghivjuk az aktualis feladat
+        // initialize_parser() metodusat.
+
         p->initialize_parser(options);
     }
 
-    // 4. ARGUMENTUMOK FELDOLGOZÁSA
-    // A program itt értelmezi, hogy mit gépelt be a felhasználó a parancssorba futtatáskor (pl. "./project -i adat.txt").
-    cxxopts::ParseResult args = options.parse(argc, argv);
 
-    // 5. A MEGFELELŐ FELADAT KIVÁLASZTÁSA ÉS FUTTATÁSA
+    // Feldolgozzuk a parancssorban megadott adatokat.
+    //
+    // Az eredmenyt az args valtozoban taroljuk.
+
+    cxxopts::ParseResult args =
+        options.parse(argc, argv);
+
+
+    // Megnezzuk, hogy a felhasznalo
+    // melyik feladatot szeretne futtatni.
+
     for (Problem *p : problems) {
-        // Megkérdezzük az aktuális feladatot, hogy a megadott paraméterek alapján őt akarják-e futtatni.
+
+        // Az is_chosen_problem() ellenorzi,
+        // hogy az adott feladat kapcsoloja szerepel-e.
+        //
+        // Pelda:
+        // Ha --det szerepel, akkor a DetProblem
+        // lesz a kivalasztott feladat.
+
         if (p->is_chosen_problem(args)) {
-            // Ha igen, elindítjuk a feladat tényleges megoldását végző 'run' metódust.
-             return p->run(args);
+
+            // Elinditjuk a kivalasztott feladatot.
+            //
+            // A run() metodus tartalmazza
+            // a feladat tenyleges megoldasat.
+
+            return p->run(args);
         }
     }
 
-    // 6. SÚGÓ MEGJELENÍTÉSE
-    // Ha egyik feladatot sem választották (vagy a -h kapcsolót adták meg), a program automatikusan kiírja a használati útmutatót.
+
+    // Ha nem valasztottunk feladatot,
+    // megjelenitjuk a hasznalati utmutatot.
+
     std::cout << options.help() << std::endl;
+
     return 0;
 }
 
-// A program tényleges belépési pontja
+
+// A main() minden C++ program belepesi pontja.
+// A program futtatasa mindig innen indul.
+
 int main(int argc, char* argv[]) {
-    // A try-catch blokk (kivételkezelés) arra szolgál, hogy ha hibás parancssori paramétert adnak meg,
-    // a program ne omoljon össze, hanem elegánsan kezelje azt.
+
+    // A try blokkban a program normal mukodeset
+    // probaljuk vegrehajtani.
+
     try {
-        // Meghívjuk a fent megírt fő logikát.
+
+        // Meghivjuk a programot iranyito fuggvenyt.
+
         return runProblem(argc, argv);
-    } catch (const cxxopts::exceptions::exception &e) {
-        // Ha az argumentum-elemző (cxxopts) hibát észlel (pl. hiányzó érték egy kapcsoló után),
-        // itt elkapjuk a hibát, és kulturáltan kiírjuk a felhasználónak, majd hiba-kóddal (1) kilépünk.
-        std::cerr << "Error parsing options: " << e.what() << std::endl;
+
+    }
+
+    // Ha a parancssori argumentumok feldolgozasakor
+    // hiba tortenik, azt itt kezeljuk.
+
+    catch (const cxxopts::exceptions::exception &e) {
+
+        // Kiirjuk a hiba szoveget a konzolra.
+
+        std::cerr
+            << "Error parsing options: "
+            << e.what()
+            << std::endl;
+
+        // Hibakoddal fejezzuk be a programot.
+
         return 1;
     }
 }
